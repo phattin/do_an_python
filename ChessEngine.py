@@ -18,14 +18,22 @@ class GameState:
     def __init__(self):
         # Khởi tạo bàn cờ 8x8 với vị trí ban đầu của các quân cờ
         self.board = [
-            ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],  # Hàng 0: quân đen (xe, mã, tượng, hậu, vua, ...)
-            ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],  # Hàng 1: tốt đen
+            # ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],  # Hàng 0: quân đen (xe, mã, tượng, hậu, vua, ...)
+            # ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],  # Hàng 1: tốt đen
+            # ["--", "--", "--", "--", "--", "--", "--", "--"],  # Hàng 2-5: ô trống
+            # ["--", "--", "--", "--", "--", "--", "--", "--"],
+            # ["--", "--", "--", "--", "--", "--", "--", "--"],
+            # ["--", "--", "--", "--", "--", "--", "--", "--"],
+            # ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],  # Hàng 6: tốt trắng
+            # ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]   # Hàng 7: quân trắng
+            ["--", "--", "--","bQ", "bK", "--", "--", "--"],  # Hàng 0: quân đen (xe, mã, tượng, hậu, vua, ...)
+           ["--", "--", "--", "--", "--", "--", "--", "--"],  # Hàng 1: tốt đen
             ["--", "--", "--", "--", "--", "--", "--", "--"],  # Hàng 2-5: ô trống
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],  # Hàng 6: tốt trắng
-            ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]   # Hàng 7: quân trắng
+           ["--", "--", "--", "--", "--", "--", "--", "--"],  # Hàng 6: tốt trắng
+            ["--", "--", "--", "wQ", "wK", "--", "--", "--"]   # Hàng 7: quân trắng
         ]
         # Lượt chơi: True nếu trắng đi, False nếu đen đi
         self.white_to_move = True
@@ -446,3 +454,25 @@ class GameState:
         opponent_moves = self.getAllMoves(enemy_color)  # Lấy nước đi của đối phương
         self.white_to_move = not self.white_to_move  # Đổi lại lượt
         return any(move.endRow == row and move.endCol == col for move in opponent_moves)  # Ô bị tấn công
+    
+    def transfer(self, move,quan):
+        if move.pieceMoved.startswith("w"):
+            if quan == "Q":
+              self.board[move.endRow][move.endCol] = "wQ"
+            if quan == "N":
+              self.board[move.endRow][move.endCol] = "wN"
+            if quan == "R":
+              self.board[move.endRow][move.endCol] = "wR"
+            if quan == "B":
+              self.board[move.endRow][move.endCol] = "wB"
+        else:
+            if quan == "Q":
+              self.board[move.endRow][move.endCol] = "bQ"
+            if quan == "N":
+              self.board[move.endRow][move.endCol] = "bN"
+            if quan == "R":
+              self.board[move.endRow][move.endCol] = "bR"
+            if quan == "B":
+              self.board[move.endRow][move.endCol] = "bB"
+
+        self.board[move.startRow][move.startCol] = "--"
