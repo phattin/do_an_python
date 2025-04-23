@@ -1,5 +1,27 @@
 import pygame as p
+MARGIN =20
+def drawBoard(screen, sqSelected, validMoves, SQ_SIZE):
 
+    colors = [p.Color("white"), p.Color("#779556")]
+    highlight = p.Color("blue")
+    move_img = p.transform.scale(p.image.load("move.png"), (SQ_SIZE, SQ_SIZE))
+
+    for r in range(8):
+        for c in range(8):
+            color = colors[(r + c) % 2]
+            p.draw.rect(screen, color, p.Rect(20 + c * SQ_SIZE, r * SQ_SIZE, SQ_SIZE, SQ_SIZE))
+            if sqSelected == (r, c):
+                p.draw.rect(screen, highlight, p.Rect(20 + c * SQ_SIZE, r * SQ_SIZE, SQ_SIZE, SQ_SIZE))
+            elif (r, c) in validMoves:
+                screen.blit(move_img, (20 + c * SQ_SIZE, r * SQ_SIZE))
+
+def drawPieces(screen, board, IMAGES, SQ_SIZE):
+    for r in range(8):
+        for c in range(8):
+            piece = board[r][c]
+            if piece != "--":
+                screen.blit(IMAGES[piece], p.Rect(20 + c * SQ_SIZE, r * SQ_SIZE, SQ_SIZE, SQ_SIZE)) 
+                
 def animateMoveWithEffect(move, screen, board, clock, effect_frames, boom_frames, IMAGES, SQ_SIZE, effect_type="effect"):
     """
     Animate a move with an effect (e.g., fireball) and explosion for captures.
@@ -24,7 +46,7 @@ def animateMoveWithEffect(move, screen, board, clock, effect_frames, boom_frames
             effect_image = effect_frames[effect_idx]
             effect_x = c * SQ_SIZE + (SQ_SIZE - effect_image.get_width()) // 2
             effect_y = r * SQ_SIZE + (SQ_SIZE - effect_image.get_height()) // 2
-            screen.blit(effect_image, (effect_x, effect_y))
+            screen.blit(effect_image, (effect_x+MARGIN, effect_y))
             p.display.flip()
             clock.tick(60)
 
@@ -37,7 +59,7 @@ def animateMoveWithEffect(move, screen, board, clock, effect_frames, boom_frames
             boom_image = boom_frames[boom_idx]
             boom_x = move.endCol * SQ_SIZE + (SQ_SIZE - boom_image.get_width()) // 2
             boom_y = move.endRow * SQ_SIZE + (SQ_SIZE - boom_image.get_height()) // 2
-            screen.blit(boom_image, (boom_x, boom_y))
+            screen.blit(boom_image, (boom_x+MARGIN, boom_y))
             p.display.flip()
             clock.tick(60)
 
@@ -58,7 +80,7 @@ def animateMove(move, screen, board, clock, IMAGES, SQ_SIZE):
         drawPieces(screen, temp_board, IMAGES, SQ_SIZE)
         piece_x = c * SQ_SIZE
         piece_y = r * SQ_SIZE
-        screen.blit(IMAGES[move.pieceMoved], (piece_x, piece_y))
+        screen.blit(IMAGES[move.pieceMoved], (piece_x+MARGIN, piece_y))
         p.display.flip()
         clock.tick(60)
 
@@ -83,7 +105,7 @@ def animateMoveKnight(move, screen, board, clock, effect_frames, boom_frames, IM
             boom_image = boom_frames[boom_idx]
             boom_x = move.startCol * SQ_SIZE + (SQ_SIZE - boom_image.get_width()) // 2
             boom_y = move.startRow * SQ_SIZE + (SQ_SIZE - boom_image.get_height()) // 2
-            screen.blit(boom_image, (boom_x, boom_y))
+            screen.blit(boom_image, (boom_x+MARGIN, boom_y))
             p.display.flip()
             clock.tick(60)
 
@@ -94,7 +116,7 @@ def animateMoveKnight(move, screen, board, clock, effect_frames, boom_frames, IM
             boom_image = effect_frames[boom_idx]
             boom_x = move.endCol * SQ_SIZE + (SQ_SIZE - boom_image.get_width()) // 2
             boom_y = move.endRow * SQ_SIZE + (SQ_SIZE - boom_image.get_height()) // 2
-            screen.blit(boom_image, (boom_x, boom_y))
+            screen.blit(boom_image, (boom_x+MARGIN, boom_y))
             p.display.flip()
             clock.tick(60)
 
@@ -107,7 +129,7 @@ def animateMoveKnight(move, screen, board, clock, effect_frames, boom_frames, IM
             boom_image = boom_frames[boom_idx]
             boom_x = move.endCol * SQ_SIZE + (SQ_SIZE - boom_image.get_width()) // 2
             boom_y = move.endRow * SQ_SIZE + (SQ_SIZE - boom_image.get_height()) // 2
-            screen.blit(boom_image, (boom_x, boom_y))
+            screen.blit(boom_image, (boom_x+MARGIN, boom_y))
             p.display.flip()
             clock.tick(60)
     else:
@@ -118,7 +140,7 @@ def animateMoveKnight(move, screen, board, clock, effect_frames, boom_frames, IM
             boom_image = boom_frames[boom_idx]
             boom_x = move.startCol * SQ_SIZE + (SQ_SIZE - boom_image.get_width()) // 2
             boom_y = move.startRow * SQ_SIZE + (SQ_SIZE - boom_image.get_height()) // 2
-            screen.blit(boom_image, (boom_x, boom_y))
+            screen.blit(boom_image, (boom_x+MARGIN, boom_y))
             p.display.flip()
             clock.tick(60)
 
@@ -132,7 +154,7 @@ def animateMoveKnight(move, screen, board, clock, effect_frames, boom_frames, IM
             boom_image = boom_frames[boom_idx]
             boom_x = move.endCol * SQ_SIZE + (SQ_SIZE - boom_image.get_width()) // 2
             boom_y = move.endRow * SQ_SIZE + (SQ_SIZE - boom_image.get_height()) // 2
-            screen.blit(boom_image, (boom_x, boom_y))
+            screen.blit(boom_image, (boom_x+MARGIN, boom_y))
             p.display.flip()
             clock.tick(60)
 
@@ -157,7 +179,7 @@ def animateMovePawn(move, screen, board, clock, effect_frames, boom_frames, IMAG
             boom_image = boom_frames[boom_idx]
             boom_x = move.startCol * SQ_SIZE + (SQ_SIZE - boom_image.get_width()) // 2
             boom_y = move.startRow * SQ_SIZE + (SQ_SIZE - boom_image.get_height()) // 2
-            screen.blit(boom_image, (boom_x, boom_y))
+            screen.blit(boom_image, (boom_x+MARGIN, boom_y))
             p.display.flip()
             clock.tick(60)
 
@@ -168,7 +190,7 @@ def animateMovePawn(move, screen, board, clock, effect_frames, boom_frames, IMAG
             boom_image = effect_frames[boom_idx]
             boom_x = move.endCol * SQ_SIZE + (SQ_SIZE - boom_image.get_width()) // 2
             boom_y = move.endRow * SQ_SIZE + (SQ_SIZE - boom_image.get_height()) // 2
-            screen.blit(boom_image, (boom_x, boom_y))
+            screen.blit(boom_image, (boom_x+MARGIN, boom_y))
             p.display.flip()
             clock.tick(60)
 
@@ -181,7 +203,7 @@ def animateMovePawn(move, screen, board, clock, effect_frames, boom_frames, IMAG
             boom_image = boom_frames[boom_idx]
             boom_x = move.endCol * SQ_SIZE + (SQ_SIZE - boom_image.get_width()) // 2
             boom_y = move.endRow * SQ_SIZE + (SQ_SIZE - boom_image.get_height()) // 2
-            screen.blit(boom_image, (boom_x, boom_y))
+            screen.blit(boom_image, (boom_x+MARGIN, boom_y))
             p.display.flip()
             clock.tick(60)
     else:
@@ -192,7 +214,7 @@ def animateMovePawn(move, screen, board, clock, effect_frames, boom_frames, IMAG
             boom_image = boom_frames[boom_idx]
             boom_x = move.startCol * SQ_SIZE + (SQ_SIZE - boom_image.get_width()) // 2
             boom_y = move.startRow * SQ_SIZE + (SQ_SIZE - boom_image.get_height()) // 2
-            screen.blit(boom_image, (boom_x, boom_y))
+            screen.blit(boom_image, (boom_x+MARGIN, boom_y))
             p.display.flip()
             clock.tick(60)
 
@@ -206,7 +228,7 @@ def animateMovePawn(move, screen, board, clock, effect_frames, boom_frames, IMAG
             boom_image = boom_frames[boom_idx]
             boom_x = move.endCol * SQ_SIZE + (SQ_SIZE - boom_image.get_width()) // 2
             boom_y = move.endRow * SQ_SIZE + (SQ_SIZE - boom_image.get_height()) // 2
-            screen.blit(boom_image, (boom_x, boom_y))
+            screen.blit(boom_image, (boom_x+MARGIN, boom_y))
             p.display.flip()
             clock.tick(60)
 
@@ -234,7 +256,7 @@ def animateMoveRook(move, screen, board, clock, freeze_frames, frost_frames, fro
                 frost_image = frost_frames[frost_idx]
                 frost_x = move.startCol * SQ_SIZE + (SQ_SIZE - frost_image.get_width()) // 2
                 frost_y = move.startRow * SQ_SIZE + (SQ_SIZE - frost_image.get_height()) // 2
-                screen.blit(frost_image, (frost_x, frost_y))
+                screen.blit(frost_image, (frost_x+MARGIN, frost_y))
                 p.display.flip()
                 clock.tick(10)
 
@@ -245,7 +267,7 @@ def animateMoveRook(move, screen, board, clock, freeze_frames, frost_frames, fro
                 frost_image = frost_frames[frost_idx]
                 frost_x = move.endCol * SQ_SIZE + (SQ_SIZE - frost_image.get_width()) // 2
                 frost_y = move.endRow * SQ_SIZE + (SQ_SIZE - frost_image.get_height()) // 2
-                screen.blit(frost_image, (frost_x, frost_y))
+                screen.blit(frost_image, (frost_x+MARGIN, frost_y))
                 p.display.flip()
                 clock.tick(10)
 
@@ -256,7 +278,7 @@ def animateMoveRook(move, screen, board, clock, freeze_frames, frost_frames, fro
                 frost_image = frost_frames[frost_idx]
                 frost_x = move.endCol * SQ_SIZE + (SQ_SIZE - frost_image.get_width()) // 2
                 frost_y = move.endRow * SQ_SIZE + (SQ_SIZE - frost_image.get_height()) // 1.5
-                screen.blit(frost_image, (frost_x, frost_y))
+                screen.blit(frost_image, (frost_x+MARGIN, frost_y))
                 p.display.flip()
                 clock.tick(30)
 
@@ -274,7 +296,7 @@ def animateMoveRook(move, screen, board, clock, freeze_frames, frost_frames, fro
                 )
                 frostright_x = c * SQ_SIZE + (SQ_SIZE - frostright_image.get_width()) // 2
                 frostright_y = r * SQ_SIZE + (SQ_SIZE - frostright_image.get_height()) // 1.8
-                screen.blit(frostright_image, (frostright_x, frostright_y))
+                screen.blit(frostright_image, (frostright_x+MARGIN, frostright_y))
                 p.display.flip()
                 clock.tick(60)
 
@@ -292,7 +314,7 @@ def animateMoveRook(move, screen, board, clock, freeze_frames, frost_frames, fro
                 )
                 frostleft_x = c * SQ_SIZE + (SQ_SIZE - frostleft_image.get_width()) // 2
                 frostleft_y = r * SQ_SIZE + (SQ_SIZE - frostleft_image.get_height()) // 1.8
-                screen.blit(frostleft_image, (frostleft_x, frostleft_y))
+                screen.blit(frostleft_image, (frostleft_x+MARGIN, frostleft_y))
                 p.display.flip()
                 clock.tick(60)
 
@@ -307,7 +329,7 @@ def animateMoveRook(move, screen, board, clock, freeze_frames, frost_frames, fro
             )
             freeze_x = move.endCol * SQ_SIZE + (SQ_SIZE - freeze_image.get_width()) // 2.0
             freeze_y = move.endRow * SQ_SIZE + (SQ_SIZE - freeze_image.get_height()) // 1.8
-            screen.blit(freeze_image, (freeze_x, freeze_y))
+            screen.blit(freeze_image, (freeze_x+MARGIN, freeze_y))
             p.display.flip()
             clock.tick(40)
 
@@ -321,7 +343,7 @@ def animateMoveRook(move, screen, board, clock, freeze_frames, frost_frames, fro
         drawPieces(screen, temp_board, IMAGES, SQ_SIZE)
         piece_x = c * SQ_SIZE
         piece_y = r * SQ_SIZE
-        screen.blit(IMAGES[move.pieceMoved], (piece_x, piece_y))
+        screen.blit(IMAGES[move.pieceMoved], (piece_x+MARGIN, piece_y))
         p.display.flip()
         clock.tick(90)
 
@@ -348,7 +370,7 @@ def animateMoveBishop(move, screen, board, clock, magic_frames, magic_boom_frame
             magic_image = magic_frames[magic_idx]
             magic_x = c * SQ_SIZE + (SQ_SIZE - magic_image.get_width()) // 2
             magic_y = r * SQ_SIZE + (SQ_SIZE - magic_image.get_height()) // 2
-            screen.blit(magic_image, (magic_x, magic_y))
+            screen.blit(magic_image, (magic_x+MARGIN, magic_y))
             p.display.flip()
             clock.tick(60)
 
@@ -360,9 +382,9 @@ def animateMoveBishop(move, screen, board, clock, magic_frames, magic_boom_frame
             boom_image = magic_boom_frames[boom_idx]
             boom_x = move.endCol * SQ_SIZE + (SQ_SIZE - boom_image.get_width()) // 2
             boom_y = move.endRow * SQ_SIZE + (SQ_SIZE - boom_image.get_height()) // 2
-            screen.blit(boom_image, (boom_x, boom_y))
+            screen.blit(boom_image, (boom_x+MARGIN, boom_y))
             p.display.flip()
-            clock.tick(60)
+            clock.tick(120)
 
     temp_board[move.startRow][move.startCol] = "--"
     trail_effects = []
@@ -382,36 +404,12 @@ def animateMoveBishop(move, screen, board, clock, magic_frames, magic_boom_frame
             trail_img.set_alpha(alpha)
             trail_x = tc * SQ_SIZE + (SQ_SIZE - trail_img.get_width()) // 2
             trail_y = tr * SQ_SIZE + (SQ_SIZE - trail_img.get_height()) // 2
-            screen.blit(trail_img, (trail_x, trail_y))
+            screen.blit(trail_img, (trail_x+MARGIN, trail_y))
         piece_x = c * SQ_SIZE
         piece_y = r * SQ_SIZE
-        screen.blit(IMAGES[move.pieceMoved], (piece_x, piece_y))
+        screen.blit(IMAGES[move.pieceMoved], (piece_x+MARGIN, piece_y))
         p.display.flip()
         clock.tick(120)
-
-def drawBoard(screen, sqSelected, validMoves, SQ_SIZE):
-    """Draw the chessboard with highlights for selected squares and valid moves."""
-    colors = [p.Color("white"), p.Color("#779556")]
-    highlight = p.Color("blue")
-    move_img = p.transform.scale(p.image.load("move.png"), (SQ_SIZE, SQ_SIZE))
-
-    for r in range(8):
-        for c in range(8):
-            color = colors[(r + c) % 2]
-            p.draw.rect(screen, color, p.Rect(c * SQ_SIZE, r * SQ_SIZE, SQ_SIZE, SQ_SIZE))
-            if sqSelected == (r, c):
-                p.draw.rect(screen, highlight, p.Rect(c * SQ_SIZE, r * SQ_SIZE, SQ_SIZE, SQ_SIZE))
-            elif (r, c) in validMoves:
-                screen.blit(move_img, (c * SQ_SIZE, r * SQ_SIZE))
-
-def drawPieces(screen, board, IMAGES, SQ_SIZE):
-    """Draw chess pieces on the board."""
-    for r in range(8):
-        for c in range(8):
-            piece = board[r][c]
-            if piece != "--":
-                screen.blit(IMAGES[piece], p.Rect(c * SQ_SIZE, r * SQ_SIZE, SQ_SIZE, SQ_SIZE))
-
 def animatetransfer(move, screen, board, clock,transfer_frames,n,m,IMAGES,SQ_SIZE):
     transfer_frame_count = 90  # Số khung hình cho vụ nổ
     num_transfer_frames = len(transfer_frames)
@@ -429,7 +427,7 @@ def animatetransfer(move, screen, board, clock,transfer_frames,n,m,IMAGES,SQ_SIZ
                             int(transfer_frames[transfer_idx].get_height() * scale_factor)))
         transfer_x = move.endCol * SQ_SIZE + (SQ_SIZE - transfer_image.get_width()) // 2
         transfer_y = move.endRow * SQ_SIZE + (SQ_SIZE - transfer_image.get_height()) // 2
-        screen.blit(transfer_image, (transfer_x, transfer_y))
+        screen.blit(transfer_image, (transfer_x+MARGIN, transfer_y))
         p.display.flip()
         clock.tick(20)
         # hiệu ứng kết thúc game
@@ -480,7 +478,7 @@ def animateCheckmate(screen, board, clock, freeze_frames, boom_frames, gs, explo
                                     (int(SQ_SIZE * scale_factor), int(SQ_SIZE * scale_factor)))
         king_x = loser_start_x + loser_dx * frame - king_img.get_width() // 2
         king_y = loser_start_y + loser_dy * frame - king_img.get_height() // 2
-        screen.blit(king_img, (king_x, king_y))
+        screen.blit(king_img, (king_x+MARGIN, king_y))
         p.display.flip()
         clock.tick(60)
 
@@ -494,7 +492,7 @@ def animateCheckmate(screen, board, clock, freeze_frames, boom_frames, gs, explo
         boom_image = p.transform.scale(boom_frames[boom_idx], (SQ_SIZE * 3, SQ_SIZE * 3))
         boom_x = WIDTH // 2 - boom_image.get_width() // 2
         boom_y = HEIGHT // 2 - boom_image.get_height() // 2
-        screen.blit(boom_image, (boom_x, boom_y))
+        screen.blit(boom_image, (boom_x+MARGIN, boom_y))
         p.display.flip()
         clock.tick(60)
 
@@ -514,7 +512,7 @@ def animateCheckmate(screen, board, clock, freeze_frames, boom_frames, gs, explo
                                            (int(SQ_SIZE * scale_factor), int(SQ_SIZE * scale_factor)))
         winner_king_x = winner_start_x + winner_dx * frame - winner_king_img.get_width() // 2
         winner_king_y = winner_start_y + winner_dy * frame - winner_king_img.get_height() // 2
-        screen.blit(winner_king_img, (winner_king_x, winner_king_y))
+        screen.blit(winner_king_img, (winner_king_x+MARGIN, winner_king_y))
         p.display.flip()
         clock.tick(60)
 
@@ -549,7 +547,7 @@ def animateCheckmate(screen, board, clock, freeze_frames, boom_frames, gs, explo
             winner_king_img = p.transform.scale(IMAGES[winner_king_piece], (int(SQ_SIZE * 2), int(SQ_SIZE * 2)))
             winner_king_x = winner_target_x - winner_king_img.get_width() // 2
             winner_king_y = winner_target_y - winner_king_img.get_height() // 2
-            screen.blit(winner_king_img, (winner_king_x, winner_king_y))
+            screen.blit(winner_king_img, (winner_king_x+MARGIN, winner_king_y))
             
             p.display.flip()
             clock.tick(60)
@@ -564,7 +562,7 @@ def animateCheckmate(screen, board, clock, freeze_frames, boom_frames, gs, explo
         boom_image = p.transform.scale(boom_frames[boom_idx], (SQ_SIZE * 3, SQ_SIZE * 3))
         boom_x = WIDTH // 2 - boom_image.get_width() // 2
         boom_y = HEIGHT // 2 - boom_image.get_height() // 2
-        screen.blit(boom_image, (boom_x, boom_y))
+        screen.blit(boom_image, (boom_x+MARGIN, boom_y))
         
         p.display.flip()
         clock.tick(60)
@@ -666,8 +664,8 @@ def animateStalemate(screen, board, clock, lightning_frames, gs, lightning_sound
         black_king_x = black_start_x + black_dx * frame - black_king_img.get_width() // 2
         black_king_y = black_start_y + black_dy * frame - black_king_img.get_height() // 2
         
-        screen.blit(white_king_img, (white_king_x, white_king_y))
-        screen.blit(black_king_img, (black_king_x, black_king_y))
+        screen.blit(white_king_img, (white_king_x+MARGIN, white_king_y))
+        screen.blit(black_king_img, (black_king_x+MARGIN, black_king_y))
         
         p.display.flip()
         clock.tick(60)
@@ -696,8 +694,8 @@ def animateStalemate(screen, board, clock, lightning_frames, gs, lightning_sound
         screen.blit(replay_text, replay_rect)
         screen.blit(back_text, back_rect)
         
-        screen.blit(white_king_img, (white_king_x, white_king_y))
-        screen.blit(black_king_img, (black_king_x, black_king_y))
+        screen.blit(white_king_img, (white_king_x+MARGIN, white_king_y))
+        screen.blit(black_king_img, (black_king_x+MARGIN, black_king_y))
         
         p.display.flip()
         clock.tick(60)
@@ -746,8 +744,8 @@ def animateStalemate(screen, board, clock, lightning_frames, gs, lightning_sound
         screen.blit(replay_text, replay_rect)
         screen.blit(back_text, back_rect)
         
-        screen.blit(white_king_img, (white_king_x, white_king_y))
-        screen.blit(black_king_img, (black_king_x, black_king_y))
+        screen.blit(white_king_img, (white_king_x+MARGIN, white_king_y))
+        screen.blit(black_king_img, (black_king_x+MARGIN, black_king_y))
         
         p.display.flip()
         clock.tick(60)

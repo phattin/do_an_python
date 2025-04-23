@@ -1,9 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 from PIL import Image, ImageTk
-import ChessMain as ch
 import pygame
-
 
 
 
@@ -11,9 +9,26 @@ def open_game(root):
     pygame.mixer.music.pause()
     root.withdraw()  # Ẩn cửa sổ chính
 
+    # Gọi hàm chạy game
+    two_player = False
+    import ChessMain as ch
+    ch.main(two_player)
+
+    # Khi cửa sổ game đóng, hiện lại cửa sổ chính
+    root.deiconify()
+    pygame.mixer.init()
+    pygame.mixer.music.load("musics/cuestiones-119653.mp3")
+    pygame.mixer.music.play(-1)
+
+def open_game_2player(root):
+    pygame.mixer.music.pause()
+    root.withdraw()  # Ẩn cửa sổ chính
+    two_player = True
+
 
     # Gọi hàm chạy game
-    ch.main()
+    import ChessMain as ch
+    ch.main(two_player)
 
     # Khi cửa sổ game đóng, hiện lại cửa sổ chính
     root.deiconify()
@@ -72,7 +87,7 @@ def main():
     btn_play.bind("<Leave>", on_leave)
 
 
-    btn_2play = tk.Button(root, text="2 Players", **btn_style)
+    btn_2play = tk.Button(root, text="2 Players",command=lambda : open_game_2player(root), **btn_style)
     btn_2play.bind("<Enter>", on_enter)
     btn_2play.bind("<Leave>", on_leave)
 

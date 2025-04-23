@@ -12,28 +12,59 @@ class Move:
         # Quân cờ bị bắt ở vị trí kết thúc (nếu có, nếu không thì là "--")
         self.pieceCaptured = board[self.endRow][self.endCol]
 
+    def getFullNotation(self):
+        """Trả về nước đi đầy đủ, bao gồm nhập thành"""
+        piece_names = {
+            'p': 'Tốt',
+            'R': 'Xe',
+            'N': 'Mã',
+            'B': 'Tượng',
+            'Q': 'Hậu',
+            'K': 'Vua'
+        }
+        color = 'Trắng' if self.pieceMoved.startswith('w') else 'Đen'
+        kind = self.pieceMoved[1]
+        piece = piece_names.get(kind, 'Quân?')
+        start = self.getRankFile(self.startRow, self.startCol)
+        end = self.getRankFile(self.endRow, self.endCol)
+        if kind == 'K' and abs(self.startCol - self.endCol) == 2:
+            if self.endCol == 6:
+                rook_from = 'h1' if color == 'Trắng' else 'h8'
+                rook_to = 'f1' if color == 'Trắng' else 'f8'
+                return f"{piece} {color} {start} → {end} (Nhập thành gần), Xe {color} {rook_from} → {rook_to}"
+            elif self.endCol == 2:
+                rook_from = 'a1' if color == 'Trắng' else 'a8'
+                rook_to = 'd1' if color == 'Trắng' else 'd8'
+                return f"{piece} {color} {start} → {end} (Nhập thành xa), Xe {color} {rook_from} → {rook_to}"
+        return f"{piece} {color} {start} → {end}"
 
+
+    def getRankFile(self, row, col):
+        """Chuyển đổi hàng và cột thành ký hiệu ô cờ (ví dụ: (6, 4) -> 'e2')"""
+        files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+        ranks = ['8', '7', '6', '5', '4', '3', '2', '1']
+        return files[col] + ranks[row]
 class GameState:
     """Lớp quản lý trạng thái của ván cờ vua"""
     def __init__(self):
         # Khởi tạo bàn cờ 8x8 với vị trí ban đầu của các quân cờ
         self.board = [
-            # ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],  # Hàng 0: quân đen (xe, mã, tượng, hậu, vua, ...)
-            # ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],  # Hàng 1: tốt đen
-            # ["--", "--", "--", "--", "--", "--", "--", "--"],  # Hàng 2-5: ô trống
-            # ["--", "--", "--", "--", "--", "--", "--", "--"],
-            # ["--", "--", "--", "--", "--", "--", "--", "--"],
-            # ["--", "--", "--", "--", "--", "--", "--", "--"],
-            # ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],  # Hàng 6: tốt trắng
-            # ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]   # Hàng 7: quân trắng
-            ["--", "--", "--","bQ", "bK", "--", "--", "--"],  # Hàng 0: quân đen (xe, mã, tượng, hậu, vua, ...)
-           ["--", "--", "--", "--", "--", "--", "--", "--"],  # Hàng 1: tốt đen
-            ["--", "--", "--", "--", "--", "--", "--", "--"],  # Hàng 2-5: ô trống
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
-           ["--", "--", "--", "--", "--", "--", "--", "--"],  # Hàng 6: tốt trắng
-            ["--", "--", "--", "wQ", "wK", "--", "--", "--"]   # Hàng 7: quân trắng
+             ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],  # Hàng 0: quân đen (xe, mã, tượng, hậu, vua, ...)
+             ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],  # Hàng 1: tốt đen
+             ["--", "--", "--", "--", "--", "--", "--", "--"],  # Hàng 2-5: ô trống
+             ["--", "--", "--", "--", "--", "--", "--", "--"],
+             ["--", "--", "--", "--", "--", "--", "--", "--"],
+             ["--", "--", "--", "--", "--", "--", "--", "--"],
+             ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],  # Hàng 6: tốt trắng
+             ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]   # Hàng 7: quân trắng
+            #["--", "--", "--","bQ", "bK", "--", "--", "--"],  # Hàng 0: quân đen (xe, mã, tượng, hậu, vua, ...)
+           #["--", "--", "--", "--", "--", "--", "--", "--"],  # Hàng 1: tốt đen
+            #["--", "--", "--", "--", "--", "--", "--", "--"],  # Hàng 2-5: ô trống
+            #["--", "--", "--", "--", "--", "--", "--", "--"],
+            #["--", "--", "--", "--", "--", "--", "--", "--"],
+            #["--", "--", "--", "--", "--", "--", "--", "--"],
+           #["--", "--", "--", "--", "--", "--", "--", "--"],  # Hàng 6: tốt trắng
+            #["--", "--", "--", "wQ", "wK", "--", "--", "--"]   # Hàng 7: quân trắng
         ]
         # Lượt chơi: True nếu trắng đi, False nếu đen đi
         self.white_to_move = True
