@@ -420,4 +420,4 @@ def main(two_player):
         p.display.flip()
     p.quit()
 if __name__ == "__main__":
-    main()
+    main(two_player=True)

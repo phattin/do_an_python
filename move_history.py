@@ -5,7 +5,7 @@ class MoveHistoryWindow:
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("Lịch sử nước đi")
-        self.root.geometry("250x500+180+80")
+        self.root.geometry("250x500+80+70")
         self.root.overrideredirect(True)  # Ẩn thanh tiêu đề gốc
 
         self.is_collapsed = False  # Trạng thái thu gọn

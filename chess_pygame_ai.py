@@ -168,7 +168,6 @@ def self_play(model: ChessNet, num_games: int = 5) -> List[Tuple[np.ndarray, np.
         
     return data
 
-# Huấn luyện mạng nơ-ron
 def train_model(model: ChessNet, data: List[Tuple[np.ndarray, np.ndarray, float, List[chess.Move]]], epochs: int = 3):
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     policy_loss_fn = nn.CrossEntropyLoss()
@@ -181,7 +180,7 @@ def train_model(model: ChessNet, data: List[Tuple[np.ndarray, np.ndarray, float,
         for board_input, policy_target, value_target, legal_moves in data:
             board_input = torch.tensor(board_input, dtype=torch.float32).unsqueeze(0)
             policy_target = torch.tensor(policy_target, dtype=torch.float32).unsqueeze(0)  # [1, num_legal_moves]
-            value_target = torch.tensor([value_target], dtype=torch.float32)
+            value_target = torch.tensor([[value_target]], dtype=torch.float32)  # [1, 1]
             
             optimizer.zero_grad()
             policy, value = model(board_input)
@@ -575,13 +574,15 @@ def drawCapturedPieces(screen, captured_white, captured_black):
         screen.blit(img, (x_offset_white, y_offset_white + i * (piece_size + spacing)))
 
 # Hàm chính (thay thế hàm main hiện tại)
+# Hàm chính (sửa để AI chơi đen, người chơi trắng, và tiếp tục huấn luyện)
 def main(two_player=False):
     p.init()
     print("Khởi tạo Pygame thành công")
     move_window = MoveHistoryWindow()
     p.mixer.init()
     flip_board = False
-
+    i = 1  # Biến kiểm soát lượt (giữ nguyên từ mã của bạn)
+    
     move_sound1 = p.mixer.Sound("sounds/chessmove1.wav")
     move_sound2 = p.mixer.Sound("sounds/chessmove2.wav")
     move_sound3 = p.mixer.Sound("sounds/chesscapture.wav")
@@ -600,15 +601,30 @@ def main(two_player=False):
     # Khởi tạo và huấn luyện AI
     model = ChessNet()
     model_path = "chess_model.pth"
+    data_path = "chess_data.pkl"
+    data = []
+
+    # Tải mô hình nếu tồn tại
     if os.path.exists(model_path):
         model.load_state_dict(torch.load(model_path))
         print("Đã tải mô hình từ chess_model.pth")
-    else:
-        print("Huấn luyện AI trước khi chơi...")
-        data = self_play(model, num_games=5)
-        train_model(model, data, epochs=3)
-        torch.save(model.state_dict(), model_path)
-        print("Đã lưu mô hình vào chess_model.pth")
+
+    # Tải dữ liệu cũ nếu tồn tại
+    if os.path.exists(data_path):
+        with open(data_path, 'rb') as f:
+            data = pickle.load(f)
+        print("Đã tải dữ liệu huấn luyện từ chess_data.pkl")
+
+    # Huấn luyện thêm
+    print("Huấn luyện AI...")
+    new_data = self_play(model, num_games=5)  # Tạo dữ liệu mới
+    data.extend(new_data)  # Kết hợp dữ liệu cũ và mới
+    train_model(model, data, epochs=3)  # Huấn luyện trên tất cả dữ liệu
+    with open(data_path, 'wb') as f:
+        pickle.dump(data, f)
+    print("Đã lưu dữ liệu huấn luyện vào chess_data.pkl")
+    torch.save(model.state_dict(), model_path)
+    print("Đã lưu mô hình vào chess_model.pth")
 
     clock = p.time.Clock()
     gs = ChessEngine.GameState()
@@ -624,10 +640,9 @@ def main(two_player=False):
     captured_black = []  # Khởi tạo cục bộ
 
     while running:
-        if not two_player and gs.white_to_move and not gs.checkmate and not gs.stalemate:
-            print("AI đang suy nghĩ...")
+        if not two_player and not gs.white_to_move and not gs.checkmate and not gs.stalemate:
             ai_move = get_ai_move(gs, model)
-            
+                       
             if ai_move.pieceCaptured != "--":
                 if ai_move.pieceCaptured[0] == 'w':
                     captured_white.append(ai_move.pieceCaptured)
@@ -642,7 +657,7 @@ def main(two_player=False):
                 )
             elif ai_move.pieceMoved in ["wp", "bp"]:
                 animateMovePawn(
-                    ai_move, screen, gs.board, clock,
+                    ai_move, ai_move, screen, gs.board, clock,
                     IMAGES['p_Slash_color1_frame1'], IMAGES['p_boom_frames'],
                     IMAGES, SQ_SIZE, "lightning"
                 )
@@ -660,19 +675,20 @@ def main(two_player=False):
                     IMAGES['magic_move_frames'],
                     IMAGES, SQ_SIZE
                 )
-            
             gs.makeMove(ai_move)
             move_window.add_move(ai_move.getFullNotation(), ai_move)
             
-            if ai_move.pieceMoved.endswith("p") and ai_move.endRow == 0:
-                promoted_piece = 'Q'
+            if ai_move.pieceMoved.endswith("p") and ai_move.endRow == 7:  # Phong cấp cho AI (đen)
+                promoted_piece = 'Q'  # AI tự chọn Hậu
                 gs.board[ai_move.endRow][ai_move.endCol] = ai_move.pieceMoved[0] + promoted_piece
                 animatetransfer(ai_move, screen, gs.board, clock, IMAGES['transfer_frames'], 43, 65, IMAGES, SQ_SIZE)
             
             if ai_move.pieceCaptured == "--":
                 move_sound2.play()
+                i = 3 - i
             else:
                 move_sound3.play()
+                i = 3 - i
             
             drawGameState(screen, gs, sqSelected, validMoves, flip_board)
             drawCapturedPieces(screen, captured_white, captured_black)
@@ -700,76 +716,78 @@ def main(two_player=False):
 
                         if len(playerClicks) == 1:
                             piece = gs.board[row][col]
-                            if (gs.white_to_move and piece.startswith("w") and two_player) or \
-                               (not gs.white_to_move and piece.startswith("b")):
+                            if gs.white_to_move and piece.startswith("w"):  # Chỉ cho phép chọn quân trắng
                                 move = ChessEngine.Move(playerClicks[0], playerClicks[0], gs.board)
                                 validMoves = gs.wayToMove(move)
                                 move_sound1.play()
 
                         if len(playerClicks) == 2:
                             move = ChessEngine.Move(playerClicks[0], playerClicks[1], gs.board)
-                            if gs.checkMove(move):
-                                if move.pieceCaptured != "--":
-                                    if move.pieceCaptured[0] == 'w':
-                                        captured_white.append(move.pieceCaptured)
+                            if gs.white_to_move and move.pieceMoved.startswith("w"):  # Kiểm tra quân trắng
+                                if gs.checkMove(move):
+                                    if move.pieceCaptured != "--":
+                                        if move.pieceCaptured[0] == 'w':
+                                            captured_white.append(move.pieceCaptured)
+                                        else:
+                                            captured_black.append(move.pieceCaptured)
+                                    if move.pieceMoved in ["wN"]:
+                                        animateMoveKnight(
+                                            move, screen, gs.board, clock,
+                                            IMAGES['Slash_color1_frame1'], IMAGES['boom_frames'],
+                                            IMAGES, SQ_SIZE, "lightning"
+                                        )
+                                    elif move.pieceMoved in ["wp"]:
+                                        animateMovePawn(
+                                            move, screen, gs.board, clock,
+                                            IMAGES['p_Slash_color1_frame1'], IMAGES['p_boom_frames'],
+                                            IMAGES, SQ_SIZE, "lightning"
+                                        )
+                                    elif move.pieceMoved in ["wR"]:
+                                        animateMoveRook(
+                                            move, screen, gs.board, clock,
+                                            IMAGES['freeze_frames'], IMAGES['frost_frames'],
+                                            IMAGES['frostright_frames'], IMAGES['frostleft_frames'],
+                                            IMAGES, SQ_SIZE
+                                        )
+                                    elif move.pieceMoved in ["wB"]:
+                                        animateMoveBishop(
+                                            move, screen, gs.board, clock,
+                                            IMAGES['magic_frames'], IMAGES['magic_boom_frames'],
+                                            IMAGES['magic_move_frames'],
+                                            IMAGES, SQ_SIZE
+                                        )
+                                    gs.makeMove(move)
+                                    if two_player:
+                                        flip_board = not flip_board
+
+                                    move_window.add_move(move.getFullNotation(), move)
+
+                                    if move.pieceMoved.endswith("p") and move.endRow == 0:  # Phong cấp cho người chơi (trắng)
+                                        drawGameState(screen, gs, None, [], flip_board)
+                                        promoted_piece = showPromotionWindow(screen, move.pieceMoved[0])
+                                        gs.board[move.endRow][move.endCol] = move.pieceMoved[0] + promoted_piece
+                                        if promoted_piece == 'N':
+                                            animatetransfer(move, screen, gs.board, clock, IMAGES['transfer_frames'], 1, 21, IMAGES, SQ_SIZE)
+                                        elif promoted_piece == 'R':
+                                            animatetransfer(move, screen, gs.board, clock, IMAGES['transfer_frames'], 21, 43, IMAGES, SQ_SIZE)
+                                        elif promoted_piece == 'Q':
+                                            animatetransfer(move, screen, gs.board, clock, IMAGES['transfer_frames'], 43, 65, IMAGES, SQ_SIZE)
+                                        elif promoted_piece == 'B':
+                                            animatetransfer(move, screen, gs.board, clock, IMAGES['transfer_frames'], 65, 88, IMAGES, SQ_SIZE)
+                                    if move.pieceCaptured == "--":
+                                        move_sound2.play()
+                                        i = 3 - i
                                     else:
-                                        captured_black.append(move.pieceCaptured)
-                                if move.pieceMoved in ["wN", "bN"]:
-                                    animateMoveKnight(
-                                        move, screen, gs.board, clock,
-                                        IMAGES['Slash_color1_frame1'], IMAGES['boom_frames'],
-                                        IMAGES, SQ_SIZE, "lightning"
-                                    )
-                                elif move.pieceMoved in ["wp", "bp"]:
-                                    animateMovePawn(
-                                        move, screen, gs.board, clock,
-                                        IMAGES['p_Slash_color1_frame1'], IMAGES['p_boom_frames'],
-                                        IMAGES, SQ_SIZE, "lightning"
-                                    )
-                                elif move.pieceMoved in ["wR", "bR"]:
-                                    animateMoveRook(
-                                        move, screen, gs.board, clock,
-                                        IMAGES['freeze_frames'], IMAGES['frost_frames'],
-                                        IMAGES['frostright_frames'], IMAGES['frostleft_frames'],
-                                        IMAGES, SQ_SIZE
-                                    )
-                                elif move.pieceMoved in ["wB", "bB"]:
-                                    animateMoveBishop(
-                                        move, screen, gs.board, clock,
-                                        IMAGES['magic_frames'], IMAGES['magic_boom_frames'],
-                                        IMAGES['magic_move_frames'],
-                                        IMAGES, SQ_SIZE
-                                    )
-                                gs.makeMove(move)
-                                if two_player:
-                                    flip_board = not flip_board
-
-                                move_window.add_move(move.getFullNotation(), move)
-
-                                if move.pieceMoved.endswith("p") and ((move.pieceMoved.startswith("w") and move.endRow == 0) or (move.pieceMoved.startswith("b") and move.endRow == 7)):
-                                    drawGameState(screen, gs, None, [])
-                                    promoted_piece = showPromotionWindow(screen, move.pieceMoved[0])
-                                    gs.board[move.endRow][move.endCol] = move.pieceMoved[0] + promoted_piece
-                                    if promoted_piece == 'N':
-                                        animatetransfer(move, screen, gs.board, clock, IMAGES['transfer_frames'], 1, 21, IMAGES, SQ_SIZE)
-                                    elif promoted_piece == 'R':
-                                        animatetransfer(move, screen, gs.board, clock, IMAGES['transfer_frames'], 21, 43, IMAGES, SQ_SIZE)
-                                    elif promoted_piece == 'Q':
-                                        animatetransfer(move, screen, gs.board, clock, IMAGES['transfer_frames'], 43, 65, IMAGES, SQ_SIZE)
-                                    elif promoted_piece == 'B':
-                                        animatetransfer(move, screen, gs.board, clock, IMAGES['transfer_frames'], 65, 88, IMAGES, SQ_SIZE)
-                                if move.pieceCaptured == "--":
-                                    move_sound2.play()
+                                        move_sound3.play()
+                                        i = 3 - i
+                                    sqSelected = ""
+                                    playerClicks = []
+                                    validMoves = []
                                 else:
-                                    move_sound3.play()
-                                sqSelected = ""
-                                playerClicks = []
-                                validMoves = []
-                            else:
-                                playerClicks = [playerClicks[0]]
-                                sqSelected = playerClicks[0]
-                                move = ChessEngine.Move(playerClicks[0], playerClicks[0], gs.board)
-                                validMoves = gs.wayToMove(move)
+                                    playerClicks = [playerClicks[0]]
+                                    sqSelected = playerClicks[0]
+                                    move = ChessEngine.Move(playerClicks[0], playerClicks[0], gs.board)
+                                    validMoves = gs.wayToMove(move)
 
         drawGameState(screen, gs, sqSelected, validMoves, flip_board)
         drawCapturedPieces(screen, captured_white, captured_black)
@@ -782,8 +800,8 @@ def main(two_player=False):
                 sqSelected = ""
                 playerClicks = []
                 validMoves = []
-                captured_white = []  # Khởi tạo lại
-                captured_black = []  # Khởi tạo lại
+                captured_white = []
+                captured_black = []
             elif result == "back" or result == "quit":
                 running = False
         elif gs.stalemate:
@@ -794,8 +812,8 @@ def main(two_player=False):
                 sqSelected = ""
                 playerClicks = []
                 validMoves = []
-                captured_white = []  # Khởi tạo lại
-                captured_black = []  # Khởi tạo lại
+                captured_white = []
+                captured_black = []
             elif result == "back" or result == "quit":
                 running = False
         move_window.update()
@@ -804,4 +822,4 @@ def main(two_player=False):
     p.quit()
 
 if __name__ == "__main__":
-    main(two_player=False)
+    main(two_player=True)
