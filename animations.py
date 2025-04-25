@@ -84,6 +84,116 @@ def animateMove(move, screen, board, clock, IMAGES, SQ_SIZE):
         p.display.flip()
         clock.tick(60)
 
+def animateMoveKing(move, screen, board, clock, thunder_frames, tdboom_frames,IMAGES,SQ_SIZE):
+    dR = move.endRow - move.startRow
+    dC = move.endCol - move.startCol
+    frames_per_square = 20
+    thunder_frame_count = (abs(dR) + abs(dC)) * frames_per_square
+    tdboom_frame_count = 20  # Số khung hình cho vụ nổ
+    move_frame_count = (abs(dR) + abs(dC)) * frames_per_square
+    num_thunder_frames = len(thunder_frames)
+    num_tdboom_frames = len(tdboom_frames)
+
+    temp_board = [row[:] for row in board]
+
+
+    if move.pieceCaptured != "--":
+        for frame in range(thunder_frame_count + 1):
+            r = move.startRow + dR * frame / thunder_frame_count
+            c = move.startCol + dC * frame / thunder_frame_count
+
+            drawBoard(screen, (), [], SQ_SIZE)
+            drawPieces(screen, temp_board, IMAGES, SQ_SIZE)
+
+            thunder_idx = (frame // 5) % num_thunder_frames
+            thunder_image = thunder_frames[thunder_idx]
+            thunder_x = c * SQ_SIZE + (SQ_SIZE - thunder_image.get_width()) // 2
+            thunder_y = r * SQ_SIZE + (SQ_SIZE - thunder_image.get_height()) // 2
+            screen.blit(thunder_image, (thunder_x+MARGIN, thunder_y))
+            
+            p.display.flip()
+            clock.tick(60)
+
+        temp_board[move.endRow][move.endCol] = "--"  # Xóa quân địch trước khi vẽ vụ nổ
+        
+        for frame in range(tdboom_frame_count + 1):
+            drawBoard(screen, (), [], SQ_SIZE)
+            drawPieces(screen, temp_board, IMAGES, SQ_SIZE)
+
+            tdboom_idx = (frame * num_tdboom_frames // tdboom_frame_count) % num_tdboom_frames  # Chọn ảnh vụ nổ
+            tdboom_image = tdboom_frames[tdboom_idx]
+            tdboom_x = move.endCol * SQ_SIZE + (SQ_SIZE - tdboom_image.get_width()) // 2
+            tdboom_y = move.endRow * SQ_SIZE + (SQ_SIZE - tdboom_image.get_height()) // 2
+            screen.blit(tdboom_image, (tdboom_x+10, tdboom_y))
+            
+            p.display.flip()
+            clock.tick(60)
+    temp_board[move.startRow][move.startCol] = "--"  # Xóa quân mình trước khi vẽ vụ nổ
+    # 3. Di chuyển quân mình từ từ đến ô đích
+    
+    for frame in range(move_frame_count + 1):
+        r = move.startRow + dR * frame / move_frame_count
+        c = move.startCol + dC * frame / move_frame_count
+
+        drawBoard(screen, (), [], SQ_SIZE)
+        drawPieces(screen, temp_board, IMAGES, SQ_SIZE)
+
+        piece_x = c * SQ_SIZE
+        piece_y = r * SQ_SIZE
+        screen.blit(IMAGES[move.pieceMoved], (piece_x+MARGIN, piece_y))
+        
+        p.display.flip()
+        clock.tick(60)
+
+def animateMoveQueen(move, screen, board, clock, fireball_frames, boom_frames,IMAGES,SQ_SIZE):
+    dR = move.endRow - move.startRow
+    dC = move.endCol - move.startCol
+    frames_per_square = 20
+    fireball_frame_count = (abs(dR) + abs(dC)) * frames_per_square
+    boom_frame_count = 20  # Số khung hình cho vụ nổ
+    move_frame_count = (abs(dR) + abs(dC)) * frames_per_square
+    num_fireball_frames = len(fireball_frames)
+    num_boom_frames = len(boom_frames)
+    temp_board = [row[:] for row in board]
+
+    if move.pieceCaptured != "--":
+        # 1. Hiệu ứng quả cầu lửa bay đến quân địch
+        for frame in range(fireball_frame_count + 1):
+            r = move.startRow + dR * frame / fireball_frame_count
+            c = move.startCol + dC * frame / fireball_frame_count
+            drawBoard(screen, (), [], SQ_SIZE)
+            drawPieces(screen, temp_board, IMAGES, SQ_SIZE)
+            fireball_idx = (frame // 5) % num_fireball_frames
+            fireball_image = fireball_frames[fireball_idx]
+            fireball_x = c * SQ_SIZE + (SQ_SIZE - fireball_image.get_width()) // 2
+            fireball_y = r * SQ_SIZE + (SQ_SIZE - fireball_image.get_height()) // 2
+            screen.blit(fireball_image, (fireball_x+MARGIN, fireball_y))
+            p.display.flip()
+            clock.tick(60)
+        temp_board[move.endRow][move.endCol] = "--"  # Xóa quân địch trước khi vẽ vụ nổ
+        for frame in range(boom_frame_count + 1):
+            drawBoard(screen, (), [], SQ_SIZE)
+            drawPieces(screen, temp_board, IMAGES, SQ_SIZE)
+            boom_idx = (frame * num_boom_frames // boom_frame_count) % num_boom_frames  # Chọn ảnh vụ nổ
+            boom_image = boom_frames[boom_idx]
+            boom_x = move.endCol * SQ_SIZE + (SQ_SIZE - boom_image.get_width()) // 2
+            boom_y = move.endRow * SQ_SIZE + (SQ_SIZE - boom_image.get_height()) // 2
+            screen.blit(boom_image, (boom_x+MARGIN, boom_y))
+            p.display.flip()
+            clock.tick(60)
+    temp_board[move.startRow][move.startCol] = "--"  # Xóa quân mình trước khi vẽ vụ nổ
+    # 3. Di chuyển quân mình từ từ đến ô đích
+    for frame in range(move_frame_count + 1):
+        r = move.startRow + dR * frame / move_frame_count
+        c = move.startCol + dC * frame / move_frame_count
+        drawBoard(screen, (), [], SQ_SIZE)
+        drawPieces(screen, temp_board, IMAGES, SQ_SIZE)
+        piece_x = c * SQ_SIZE
+        piece_y = r * SQ_SIZE
+        screen.blit(IMAGES[move.pieceMoved], (piece_x+MARGIN, piece_y))
+        p.display.flip()
+        clock.tick(60)
+
 def animateMoveKnight(move, screen, board, clock, effect_frames, boom_frames, IMAGES, SQ_SIZE, effect_type="effect"):
     """Animate knight moves with slash and explosion effects."""
     dR = move.endRow - move.startRow

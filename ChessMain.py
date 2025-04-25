@@ -1,7 +1,7 @@
 import pygame as p
 import ChessEngine
 from animations import (
-    animateMoveKnight, animateMovePawn, animateMoveRook, animateMoveBishop, animatetransfer,animateCheckmate,animateStalemate
+    animateMoveKnight, animateMovePawn, animateMoveRook, animateMoveBishop, animatetransfer,animateCheckmate,animateStalemate,animateMoveQueen,animateMoveKing
 )
 from move_history import MoveHistoryWindow
 # Constants
@@ -31,6 +31,15 @@ def loadImages():
         fireball_frames.append(fireball_img)
     IMAGES['fireball_frames'] = fireball_frames
 
+    sunboom_frames = []
+    num_sunboom_frames = 12
+    for i in range(1, num_sunboom_frames + 1):
+        sunboom_img = p.transform.scale(
+            p.image.load(f"03/{i}_03.png"), (SQ_SIZE * 2, SQ_SIZE * 2)
+        )
+        sunboom_frames.append(sunboom_img)
+    IMAGES['sunboom_frames'] = sunboom_frames
+
     boom_frames = []
     for i in range(1, 13):
         boom_img = p.transform.scale(
@@ -38,6 +47,24 @@ def loadImages():
         )
         boom_frames.append(boom_img)
     IMAGES['boom_frames'] = boom_frames
+
+    thunder_frames=[]
+    num_frames=24
+    for i in range(1, num_frames + 1):
+        thunder_img = p.transform.scale(
+            p.image.load(f"thunder/{i}_thunder.png"), (SQ_SIZE * 2, SQ_SIZE * 2)
+        )
+        thunder_frames.append(thunder_img)
+    IMAGES['thunder_frames'] = thunder_frames
+
+    tdboom_frames=[]
+    num_tdboom_frames=13
+    for i in range(1, num_tdboom_frames + 1):
+        tdboom_img = p.transform.scale(
+            p.image.load(f"thunderboom/{i}_tdboom.png"), (SQ_SIZE * 2, SQ_SIZE * 2)
+        )
+        tdboom_frames.append(tdboom_img)
+    IMAGES['tdboom_frames'] = tdboom_frames
 
     slash_color1_frames = []
     for i in range(1, 10):
@@ -281,6 +308,7 @@ def main(two_player):
     move_window = MoveHistoryWindow()
     p.mixer.init()
     flip_board = False
+    i=1
 
     move_sound1 = p.mixer.Sound("sounds/chessmove1.wav")
     move_sound2 = p.mixer.Sound("sounds/chessmove2.wav")
@@ -329,68 +357,84 @@ def main(two_player):
 
                         if len(playerClicks) == 2:
                             move = ChessEngine.Move(playerClicks[0], playerClicks[1], gs.board)
-                            if gs.checkMove(move):
-                                if move.pieceCaptured != "--":
-                                    if move.pieceCaptured[0] == 'w':
-                                        captured_white.append(move.pieceCaptured)
+                            if (move.pieceMoved.startswith("w") and i == 1) or (move.pieceMoved.startswith("b") and i == 2):
+                                if gs.checkMove(move):
+                                    if move.pieceCaptured != "--":
+                                        if move.pieceCaptured[0] == 'w':
+                                            captured_white.append(move.pieceCaptured)
+                                        else:
+                                            captured_black.append(move.pieceCaptured)
+                                    if move.pieceMoved in ["wN", "bN"]:
+                                        animateMoveKnight(
+                                            move, screen, gs.board, clock,
+                                            IMAGES['Slash_color1_frame1'], IMAGES['boom_frames'],
+                                            IMAGES, SQ_SIZE, "lightning"
+                                        )
+                                    elif move.pieceMoved in ["wp", "bp"]:
+                                        animateMovePawn(
+                                            move, screen, gs.board, clock,
+                                            IMAGES['p_Slash_color1_frame1'], IMAGES['p_boom_frames'],
+                                            IMAGES, SQ_SIZE, "lightning"
+                                        )
+                                    elif move.pieceMoved in ["wR", "bR"]:
+                                        animateMoveRook(
+                                            move, screen, gs.board, clock,
+                                            IMAGES['freeze_frames'], IMAGES['frost_frames'],
+                                            IMAGES['frostright_frames'], IMAGES['frostleft_frames'],
+                                            IMAGES, SQ_SIZE
+                                        )
+                                    elif move.pieceMoved in ["wB", "bB"]:
+                                        animateMoveBishop(
+                                            move, screen, gs.board, clock,
+                                            IMAGES['magic_frames'], IMAGES['magic_boom_frames'],
+                                            IMAGES['magic_move_frames'],
+                                            IMAGES, SQ_SIZE
+                                        )
+                                    elif move.pieceMoved in ["wQ","bQ"]:
+                                        animateMoveQueen(
+                                            move,screen,gs.board,clock,
+                                            IMAGES['fireball_frames'],IMAGES['sunboom_frames'],
+                                            IMAGES,SQ_SIZE
+                                        )
+                                    elif  move.pieceMoved in ["wK","bK"]:
+                                        animateMoveKing(
+                                            move,screen,gs.board,clock,
+                                            IMAGES['thunder_frames'],IMAGES['tdboom_frames'],
+                                            IMAGES,SQ_SIZE
+                                        )
+                                    gs.makeMove(move)
+
+
+                                    move_window.add_move(move.getFullNotation(), move)
+
+                                    if (move.pieceMoved.endswith("p") and ((move.pieceMoved.startswith("w") and move.endRow == 0) or (move.pieceMoved.startswith("b") and move.endRow == 7))):
+                                        drawGameState(screen, gs, None, [],flip_board)
+                                        promoted_piece = showPromotionWindow(screen, move.pieceMoved[0])  # Lấy ký tự Q, R, B, N
+                                        gs.board[move.endRow][move.endCol] = move.pieceMoved[0] + promoted_piece 
+                                        if promoted_piece=='N':
+                                            animatetransfer(move,screen,gs.board,clock,IMAGES['transfer_frames'],1,21,IMAGES, SQ_SIZE)
+                                        if promoted_piece=='R':
+                                            animatetransfer(move,screen,gs.board,clock,IMAGES['transfer_frames'],21,43,IMAGES, SQ_SIZE)
+                                        if promoted_piece=='Q':
+                                            animatetransfer(move,screen,gs.board,clock,IMAGES['transfer_frames'],43,65,IMAGES, SQ_SIZE)
+                                        if promoted_piece=='B':
+                                            animatetransfer(move,screen,gs.board,clock,IMAGES['transfer_frames'],65,88,IMAGES, SQ_SIZE)
+                                    if move.pieceCaptured == "--":
+                                        move_sound2.play()
+                                        i=3-i
                                     else:
-                                        captured_black.append(move.pieceCaptured)
-                                if move.pieceMoved in ["wN", "bN"]:
-                                    animateMoveKnight(
-                                        move, screen, gs.board, clock,
-                                        IMAGES['Slash_color1_frame1'], IMAGES['boom_frames'],
-                                        IMAGES, SQ_SIZE, "lightning"
-                                    )
-                                elif move.pieceMoved in ["wp", "bp"]:
-                                    animateMovePawn(
-                                        move, screen, gs.board, clock,
-                                        IMAGES['p_Slash_color1_frame1'], IMAGES['p_boom_frames'],
-                                        IMAGES, SQ_SIZE, "lightning"
-                                    )
-                                elif move.pieceMoved in ["wR", "bR"]:
-                                    animateMoveRook(
-                                        move, screen, gs.board, clock,
-                                        IMAGES['freeze_frames'], IMAGES['frost_frames'],
-                                        IMAGES['frostright_frames'], IMAGES['frostleft_frames'],
-                                        IMAGES, SQ_SIZE
-                                    )
-                                elif move.pieceMoved in ["wB", "bB"]:
-                                    animateMoveBishop(
-                                        move, screen, gs.board, clock,
-                                        IMAGES['magic_frames'], IMAGES['magic_boom_frames'],
-                                        IMAGES['magic_move_frames'],
-                                        IMAGES, SQ_SIZE
-                                    )
-                                gs.makeMove(move)
-                                if two_player:
-                                    flip_board = not flip_board
-
-                                move_window.add_move(move.getFullNotation(), move)
-
-                                if (move.pieceMoved.endswith("p") and ((move.pieceMoved.startswith("w") and move.endRow == 0) or (move.pieceMoved.startswith("b") and move.endRow == 7))):
-                                    drawGameState(screen, gs, None, [])
-                                    promoted_piece = showPromotionWindow(screen, move.pieceMoved[0])  # Lấy ký tự Q, R, B, N
-                                    gs.board[move.endRow][move.endCol] = move.pieceMoved[0] + promoted_piece 
-                                    if promoted_piece=='N':
-                                        animatetransfer(move,screen,gs.board,clock,IMAGES['transfer_frames'],1,21,IMAGES, SQ_SIZE)
-                                    if promoted_piece=='R':
-                                        animatetransfer(move,screen,gs.board,clock,IMAGES['transfer_frames'],21,43,IMAGES, SQ_SIZE)
-                                    if promoted_piece=='Q':
-                                        animatetransfer(move,screen,gs.board,clock,IMAGES['transfer_frames'],43,65,IMAGES, SQ_SIZE)
-                                    if promoted_piece=='B':
-                                        animatetransfer(move,screen,gs.board,clock,IMAGES['transfer_frames'],65,88,IMAGES, SQ_SIZE)
-                                if move.pieceCaptured == "--":
-                                    move_sound2.play()
+                                        move_sound3.play()
+                                        i=3-i
+                                    sqSelected = ""
+                                    playerClicks = []
+                                    validMoves = []
+                                    if two_player:
+                                        flip_board = not flip_board
                                 else:
-                                    move_sound3.play()
-                                sqSelected = ""
-                                playerClicks = []
-                                validMoves = []
-                            else:
-                                playerClicks = [playerClicks[0]]
-                                sqSelected = playerClicks[0]
-                                move = ChessEngine.Move(playerClicks[0], playerClicks[0], gs.board)
-                                validMoves = gs.wayToMove(move)
+                                    playerClicks = [playerClicks[0]]
+                                    sqSelected = playerClicks[0]
+                                    move = ChessEngine.Move(playerClicks[0], playerClicks[0], gs.board)
+                                    validMoves = gs.wayToMove(move)
 
         drawGameState(screen, gs, sqSelected, validMoves,flip_board)
         drawCapturedPieces(screen, captured_white, captured_black)
