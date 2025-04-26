@@ -545,7 +545,7 @@ def animateCheckmate(screen, board, clock, freeze_frames, boom_frames, gs, explo
     """Hiệu ứng kết thúc game khi bị chiếu hết"""
     loser_color = "w" if gs.white_to_move else "b"
     winner_color = "b" if loser_color == "w" else "w"
-    winner_name = "Đen" if winner_color == "b" else "Trắng"
+    winner_name = "Black" if winner_color == "b" else "White"
     loser_king_pos = gs.white_king_location if loser_color == "w" else gs.black_king_location
     winner_king_pos = gs.black_king_location if winner_color == "b" else gs.white_king_location
     loser_king_piece = "wK" if loser_color == "w" else "bK"
@@ -559,12 +559,12 @@ def animateCheckmate(screen, board, clock, freeze_frames, boom_frames, gs, explo
 
     # Font cho văn bản
     font = p.font.SysFont("Arial", 48, True)
-    win_text = font.render(f"{winner_name} Thắng!", True, p.Color("yellow"))
+    win_text = font.render(f"{winner_name} Win!", True, p.Color("yellow"))
     win_text_rect = win_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 50))
 
     button_font = p.font.SysFont("Arial", 36, True)
-    replay_text = button_font.render("Chơi lại", True, p.Color("white"))
-    back_text = button_font.render("Quay lại", True, p.Color("white"))
+    replay_text = button_font.render("REPLAY", True, p.Color("white"))
+    back_text = button_font.render("BACK", True, p.Color("white"))
     replay_rect = replay_text.get_rect(center=(WIDTH // 2 - 100, HEIGHT // 2 + 50))
     back_rect = back_text.get_rect(center=(WIDTH // 2 + 100, HEIGHT // 2 + 50))
 
