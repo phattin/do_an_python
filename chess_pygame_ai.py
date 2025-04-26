@@ -600,7 +600,7 @@ def main(two_player=False):
     # Hiển thị màn hình đang tải
     screen.fill(p.Color("black"))
     font = p.font.SysFont("Arial", 30, True)
-    loading_text = font.render("Đang khởi tạo AI...", True, p.Color("white"))
+    loading_text = font.render("Loading...", True, p.Color("white"))
     screen.blit(loading_text, (WIDTH // 2 - loading_text.get_width() // 2, HEIGHT // 2))
     p.display.flip()
     print("Hiển thị màn hình đang tải")
